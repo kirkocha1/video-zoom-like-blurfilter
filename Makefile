@@ -9,10 +9,10 @@ CXX = g++
 CXXFLAGS = --std=c++17
 
 # Include directories
-INCLUDES = -I/usr/local/include/opencv4 -I/usr/local/cuda/include -I/usr/local/cuda/targets/x86_64-linux/include
+INCLUDES = `pkg-config --cflags --libs opencv4` `pkg-config --cflags --libs dlib-1` -I/usr/local/cuda/include -I/usr/local/cuda/targets/x86_64-linux/include 
 
 # Libraries
-LIBS = -lopencv_core -lopencv_videoio -lopencv_imgcodecs -lopencv_imgproc -lopencv_highgui -lopencv_cudaimgproc -lcudafilters -ldlib -lcuda
+LIBS = -lcuda
 
 SRC = ./src/face_blur.cpp
 
@@ -21,14 +21,16 @@ OUT = ./bin/face_blur
 build:
 	$(CXX) $(SRC) -o $(OUT) $(CXXFLAGS) $(INCLUDES) $(LIBS)
 
-build_deps:
-	$(CXX) ./src/check_dlib.cpp --std c++17 \
-	-o ./bin/check_dlib -Wno-deprecated-gpu-targets \
-	-I/usr/local/cuda/include \
-	-I/usr/local/cuda/targets/x86_64-linux/include \
-	-lcuda -ldlib -lopencv_core
+build_check_dlib:
+	$(CXX) ./src/check_dlib.cpp $(CXXFLAGS) -o ./bin/check_dlib $(INCLUDES) $(LIBS)
 
-dep_test: build_deps
+build_check_opencv:
+	$(CXX) ./src/check_opencv.cpp $(CXXFLAGS) -o ./bin/check_opencv $(INCLUDES) $(LIBS)
+
+test_opencv: build_check_opencv
+	./bin/check_opencv
+
+test_dlib: build_check_dlib
 	./bin/check_dlib
 
 run:
